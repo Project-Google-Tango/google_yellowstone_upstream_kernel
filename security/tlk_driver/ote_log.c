@@ -176,27 +176,27 @@ void ote_print_logs(void) {}
  * An SMC is made to send the virtual address of the structure to
  * the secure OS.
  */
-int ote_logger_init(struct tlk_info *tlk_info)
+static int __init ote_logger_init(void)
 {
-	uintptr_t smc_args[MAX_EXT_SMC_ARGS];
+	uint32_t smc_args[MAX_EXT_SMC_ARGS];
 
 #if defined(CONFIG_OTE_ENABLE_LOGGER)
 	if (circ_buf_init(&cb) != 0)
 		return -1;
 
 	smc_args[0] = TE_SMC_INIT_LOGGER;
-	smc_args[1] = (uintptr_t)cb;
+	smc_args[1] = (uint32_t)cb;
+	tlk_generic_smc(smc_args[0], smc_args[1], 0);
 
-	/* enable logging only if secure firmware supports it */
-	if (!tlk_generic_smc(tlk_info, smc_args[0], smc_args[1], 0, 0))
-		ote_logging_enabled = 1;
-
+	ote_logging_enabled = 1;
 	ote_print_logs();
 #else
 	smc_args[0] = TE_SMC_INIT_LOGGER;
 	smc_args[1] = 0;
-	tlk_generic_smc(tlk_info, smc_args[0], smc_args[1], 0, 0);
+	tlk_generic_smc(smc_args[0], smc_args[1], 0);
 #endif
 
 	return 0;
 }
+
+arch_initcall(ote_logger_init);
