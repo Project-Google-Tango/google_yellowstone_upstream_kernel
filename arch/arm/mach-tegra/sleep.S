@@ -207,9 +207,17 @@ ENDPROC(tegra_flush_l1_cache)
  * tegra?_tear_down_cpu
  */
 ENTRY(tegra_sleep_cpu_finish)
-#if !defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
-	bl	tegra_flush_cache
+	mov	r4, r0
+#if defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
+	ldr	r0, =0x84000001
+	ldr	r1, =((1 << 16) | 4)
+	ldr	r2, =TEGRA_RESET_HANDLER_BASE
+	bl	tegra_sm_generic
 #endif
+
+	bl	tegra_flush_cache
+
+	mov	r0, r4
 	bl	tegra_cpu_exit_coherency
 
 #ifdef CONFIG_ARCH_TEGRA_2x_SOC
@@ -328,21 +336,4 @@ ENTRY(tegra_cpu_pllp)
 	str	r0, [r5, #CLK_RESET_CCLK_DIVIDER]
 	mov	pc, lr
 ENDPROC(tegra_cpu_pllp)
-#endif
-
-#if defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
-/*
- * tegra_generic_smc
- *
- * r0 = smc type
- * r1 = smc subtype
- * r2 = argument passed to smc
- *
- * issues SMC (secure monitor call) instruction with
- * the specified parameters.
- */
-ENTRY(tegra_generic_smc)
-	smc	#0
-	mov	pc, lr
-ENDPROC(tegra_generic_smc)
 #endif

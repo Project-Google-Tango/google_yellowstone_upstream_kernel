@@ -57,6 +57,7 @@
 #include <linux/tegra-pmc.h>
 #include <linux/tegra_pm_domains.h>
 #include <linux/kmemleak.h>
+#include <linux/tegra_sm.h>
 
 #include <trace/events/power.h>
 #include <trace/events/nvsecurity.h>
@@ -700,6 +701,9 @@ static void tegra_sleep_core(enum tegra_suspend_mode mode,
 	if (mode == TEGRA_SUSPEND_LP0) {
 		trace_smc_sleep_core(NVSEC_SMC_START);
 
+		tegra_sm_generic(0x84000001, ((1 << 16) | (1 << 24) | 1),
+			virt_to_phys(tegra_resume));
+
 #if defined(CONFIG_ARM_PSCI)
 		if (psci_ops.cpu_suspend) {
 			pps.id = TEGRA_ID_CPU_SUSPEND_LP0;
@@ -711,6 +715,10 @@ static void tegra_sleep_core(enum tegra_suspend_mode mode,
 #endif
 	} else {
 		trace_smc_sleep_core(NVSEC_SMC_START);
+
+		tegra_sm_generic(0x84000001, ((1 << 16) | 2),
+				  (TEGRA_RESET_HANDLER_BASE +
+				   tegra_cpu_reset_handler_offset));
 
 #if defined(CONFIG_ARM_PSCI)
 		if (psci_ops.cpu_suspend) {
@@ -771,6 +779,10 @@ static inline void tegra_stop_mc_clk(unsigned long v2p)
 	outer_flush_range(__pa(&tegra_resume_timestamps_start),
 			  __pa(&tegra_resume_timestamps_end));
 	trace_smc_sleep_core(NVSEC_SMC_START);
+
+	tegra_sm_generic(0x84000001, ((1 << 16) | 3),
+						(TEGRA_RESET_HANDLER_BASE +
+						 tegra_cpu_reset_handler_offset));
 
 #if defined(CONFIG_ARM_PSCI)
 	if (psci_ops.cpu_suspend) {
@@ -2241,4 +2253,13 @@ static int __init tegra_pm_core_debug_init(void)
 }
 
 late_initcall(tegra_pm_core_debug_init);
+#endif
+
+#ifdef CONFIG_DEBUG_RODATA
+void set_platform_text_rw(void)
+{
+#ifdef CONFIG_TEGRA_USE_SECURE_KERNEL
+	set_memory_rw((unsigned long)tegra_sm_generic, 1);
+#endif
+}
 #endif

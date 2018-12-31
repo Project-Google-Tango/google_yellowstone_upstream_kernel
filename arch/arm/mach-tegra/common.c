@@ -47,6 +47,7 @@
 #include <linux/tegra-soc.h>
 #include <linux/dma-contiguous.h>
 #include <linux/tegra-fuse.h>
+#include <linux/tegra_sm.h>
 #ifdef CONFIG_TRUSTED_LITTLE_KERNEL
 #include <linux/ote_protocol.h>
 #endif
@@ -93,6 +94,8 @@
 
 #define   RECOVERY_MODE	BIT(31)
 #define   BOOTLOADER_MODE	BIT(30)
+#define   CCI_T2_MODE	BIT(29)
+#define   CCI_T1_MODE	BIT(28)
 #define   FORCED_RECOVERY_MODE	BIT(1)
 
 #define AHB_GIZMO_USB		0x1c
@@ -287,7 +290,10 @@ void tegra_assert_system_reset(char mode, const char *cmd)
 	}
 
 	reg = readl_relaxed(reset + PMC_SCRATCH0);
-	/* Writing recovery kernel or Bootloader mode in SCRATCH0 31:30:1 */
+	/*
+	 * Writing recovery/cci_t1/cci_t2 kernel or Bootloader mode in
+	 * SCRATCH0 31:30:29:28:1
+	 */
 	if (cmd) {
 		if (!strcmp(cmd, "recovery"))
 			reg |= RECOVERY_MODE;
@@ -295,14 +301,21 @@ void tegra_assert_system_reset(char mode, const char *cmd)
 			reg |= BOOTLOADER_MODE;
 		else if (!strcmp(cmd, "forced-recovery"))
 			reg |= FORCED_RECOVERY_MODE;
+		else if (!strcmp(cmd, "cci_t1"))
+			reg |= CCI_T1_MODE;
+		else if (!strcmp(cmd, "cci_t2"))
+			reg |= CCI_T2_MODE;
 		else {
-			reg &= ~(BOOTLOADER_MODE | RECOVERY_MODE | FORCED_RECOVERY_MODE);
+			reg &= ~(BOOTLOADER_MODE | RECOVERY_MODE |
+				 FORCED_RECOVERY_MODE | CCI_T1_MODE |
+				 CCI_T2_MODE);
 			empty_command = true;
 		}
 	}
 	else {
-		/* Clearing SCRATCH0 31:30:1 on default reboot */
-		reg &= ~(BOOTLOADER_MODE | RECOVERY_MODE | FORCED_RECOVERY_MODE);
+		/* Clearing SCRATCH0 31:30:29:28:1 on default reboot */
+		reg &= ~(BOOTLOADER_MODE | RECOVERY_MODE |
+			 FORCED_RECOVERY_MODE | CCI_T1_MODE | CCI_T2_MODE);
 	}
 	writel_relaxed(reg, reset + PMC_SCRATCH0);
 	if ((!cmd || empty_command) && pm_power_reset) {
@@ -654,9 +667,9 @@ static void tegra_cache_smc(bool enable, u32 arg)
 	local_irq_save(flags);
 	l2x0_enabled = readl_relaxed(p + L2X0_CTRL) & 1;
 	if (enable && !l2x0_enabled)
-		tegra_generic_smc(0x82000002, 0x00000001, arg);
+		tegra_sm_generic(0x82000002, 0x00000001, arg);
 	else if (!enable && l2x0_enabled)
-		tegra_generic_smc(0x82000002, 0x00000002, arg);
+		tegra_sm_generic(0x82000002, 0x00000002, arg);
 	local_irq_restore(flags);
 
 	if (need_affinity_switch && can_switch_affinity) {
