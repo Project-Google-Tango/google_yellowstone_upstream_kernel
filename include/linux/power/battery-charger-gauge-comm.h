@@ -24,8 +24,6 @@
 #ifndef _LINUX_POWER_BATTERY_CHARGER_GAUGE_COMM_H
 #define _LINUX_POWER_BATTERY_CHARGER_GAUGE_COMM_H
 
-#define BATTERY_SNAPSHOT_INTERVAL	2*HZ
-
 enum battery_charger_status {
 	BATTERY_DISCHARGING,
 	BATTERY_CHARGING,
@@ -61,7 +59,6 @@ struct battery_charger_info {
 struct battery_gauge_info {
 	int cell_id;
 	const char *tz_name;
-	const char *current_channel_name;
 	struct battery_gauge_ops *bg_ops;
 };
 
@@ -86,8 +83,6 @@ int battery_charging_system_power_on_usb_event(
 	struct battery_charger_dev *bc_dev);
 int battery_gauge_get_battery_temperature(struct battery_gauge_dev *bg_dev,
 	int *temp);
-int battery_gauge_get_battery_current(struct battery_gauge_dev *bg_dev,
-	int *current_ma);
 int battery_charger_set_current_broadcast(struct battery_charger_dev *bc_dev);
 struct battery_gauge_dev *battery_gauge_register(struct device *dev,
 		struct battery_gauge_info *bgi, void *drv_data);
