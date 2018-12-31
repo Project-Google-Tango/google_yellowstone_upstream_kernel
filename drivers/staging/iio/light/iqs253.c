@@ -154,8 +154,6 @@
 
 #define ACT_CH0      0x0
 
-
-
 struct iqs253_chip {
 	struct i2c_client	*client;
 	const struct i2c_device_id	*id;
