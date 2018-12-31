@@ -47,8 +47,9 @@
 #define RM_VARIABLE_SET_WAKE_UNLOCK				0x0A
 #define RM_VARIABLE_DPW							0x0B
 #define RM_VARIABLE_NS_MODE						0x0C
-#define RM_VARIABLE_TOUCHFILE_STATUS			0x0D
-#define RM_VARIABLE_STYLUS_STATUS				0x0E
+#define RM_VARIABLE_TOUCHFILE_STATUS            0x0D
+#define RM_VARIABLE_TOUCH_EVENT               0x0E
+#define RM_VARIABLE_SENSOR_SELECT               0x0F
 
 
 #define RM_IOCTL_GET_VARIABLE				0x1011
@@ -59,6 +60,7 @@
 #define RM_IOCTL_SET_KRL_TBL				0x1013
 #define RM_IOCTL_WATCH_DOG					0x1014
 #define RM_IOCTL_SET_BASELINE				0x1015
+#define RM_IOCTL_INIT_SERVICE				0x1016
 
 #define RM_INPUT_RESOLUTION_X				4096
 #define RM_INPUT_RESOLUTION_Y				4096
@@ -97,7 +99,6 @@
 #define RM_PLATFORM_L005	0x09
 #define RM_PLATFORM_K156	0x0A
 #define RM_PLATFORM_T008	0x0B
-#define RM_PLATFORM_T008_2	0x0D
 #define RM_PLATFORM_RAYPRJ	0x80
 
 /***************************************************************************
@@ -129,7 +130,7 @@
 #define KRL_INDEX_RM_NSPARA				12
 #define KRL_INDEX_RM_WRITE_IMG			13
 #define KRL_INDEX_RM_TLK				14
-#define KRL_INDEX_RM_KL_TESTMODE		15
+#define KRL_INDEX_RM_KL_TESTMODE			15
 
 #define KRL_SIZE_SET_IDLE				128
 #define KRL_SIZE_PAUSE_AUTO				64
@@ -145,8 +146,8 @@
 #define KRL_SIZE_RM_SETREPTIME			32
 #define KRL_SIZE_RM_NS_PARA				64
 #define KRL_SIZE_RM_WRITE_IMAGE			64
-#define KRL_SIZE_RM_TLK					128
-#define KRL_SIZE_RM_KL_TESTMODE			128
+#define KRL_SIZE_RM_TLK                128
+#define KRL_SIZE_RM_KL_TESTMODE                128
 
 #define KRL_TBL_FIELD_POS_LEN_H				0
 #define KRL_TBL_FIELD_POS_LEN_L				1
@@ -164,7 +165,7 @@
 #define KRL_CMD_WRITE_W_COUNT				0x1C
 #define KRL_CMD_RETURN_RESULT				0x1D
 #define KRL_CMD_RETURN_VALUE				0x1E
-#define KRL_CMD_DRAM_INIT					0x1F
+#define KRL_CMD_DRAM_INIT                   0x1F
 
 
 #define KRL_CMD_SEND_SIGNAL					0x20
@@ -219,7 +220,7 @@
  ***************************************************************************/
 #define INPUT_PROTOCOL_TYPE_A	0x01
 #define INPUT_PROTOCOL_TYPE_B	0x02
-#define INPUT_PROTOCOL_CURRENT_SUPPORT INPUT_PROTOCOL_TYPE_B
+#define INPUT_PROTOCOL_CURRENT_SUPPORT INPUT_PROTOCOL_TYPE_A
 
 #define INPUT_POINT_RESET	0x80
 #define MAX_REPORT_TOUCHED_POINTS	10
@@ -244,6 +245,19 @@
  *	NOTE: Need to sync with HAL
  ***************************************************************************/
 
+/*#define ENABLE_CALC_QUEUE_COUNT*/
+#define ENABLE_SLOW_SCAN
+#define ENABLE_SMOOTH_LEVEL
+#define ENABLE_SPI_SETTING		0
+#define ENABLE_FREQ_HOPPING		1
+#define ENABLE_FB_CALLBACK	0
+
+enum tch_update_reason {
+	STYLUS_DISABLE_BY_WATER = 0x01,
+	STYLUS_DISABLE_BY_NOISE,
+	STYLUS_IS_ENABLED = 0xFF,
+};
+
 struct rm_touch_event {
 	unsigned char uc_touch_count;
 	unsigned char uc_id[RM_TS_MAX_POINTS];
@@ -265,8 +279,11 @@ struct rm_spi_ts_platform_data {
 	int y_size;
 	unsigned char *config;
 	int platform_id;
+#ifdef EPROBE_DEFER
 	unsigned char *name_of_clock;
 	unsigned char *name_of_clock_con;
+#endif
+	/* Read from struct */
 	bool gpio_sensor_select0;
 	bool gpio_sensor_select1;
 };
