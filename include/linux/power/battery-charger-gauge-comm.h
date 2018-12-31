@@ -24,6 +24,8 @@
 #ifndef _LINUX_POWER_BATTERY_CHARGER_GAUGE_COMM_H
 #define _LINUX_POWER_BATTERY_CHARGER_GAUGE_COMM_H
 
+#define BATTERY_SNAPSHOT_INTERVAL	2*HZ
+
 enum battery_charger_status {
 	BATTERY_DISCHARGING,
 	BATTERY_CHARGING,
@@ -59,6 +61,7 @@ struct battery_charger_info {
 struct battery_gauge_info {
 	int cell_id;
 	const char *tz_name;
+	const char *current_channel_name;
 	struct battery_gauge_ops *bg_ops;
 };
 
