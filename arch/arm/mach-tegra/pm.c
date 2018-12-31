@@ -690,45 +690,41 @@ bool tegra_set_cpu_in_pd(int cpu)
 static void tegra_sleep_core(enum tegra_suspend_mode mode,
 			     unsigned long v2p)
 {
+#ifdef CONFIG_TEGRA_USE_SECURE_KERNEL
 #if defined(CONFIG_ARM_PSCI)
 	struct psci_power_state pps;
 #endif
-	if (tegra_cpu_is_secure()) {
-		outer_flush_range(__pa(&tegra_resume_timestamps_start),
-				  __pa(&tegra_resume_timestamps_end));
+	outer_flush_range(__pa(&tegra_resume_timestamps_start),
+			  __pa(&tegra_resume_timestamps_end));
 
-		if (mode == TEGRA_SUSPEND_LP0) {
-			trace_smc_sleep_core(NVSEC_SMC_START);
-
-#if defined(CONFIG_ARM_PSCI)
-			if (psci_ops.cpu_suspend) {
-				pps.id = TEGRA_ID_CPU_SUSPEND_LP0;
-				pps.type = PSCI_POWER_STATE_TYPE_POWER_DOWN;
-				pps.affinity_level =
-					TEGRA_PWR_DN_AFFINITY_CLUSTER;
-
-				psci_ops.cpu_suspend(pps,
-					virt_to_phys(tegra_resume));
-			}
-#endif
-		} else {
-			trace_smc_sleep_core(NVSEC_SMC_START);
+	if (mode == TEGRA_SUSPEND_LP0) {
+		trace_smc_sleep_core(NVSEC_SMC_START);
 
 #if defined(CONFIG_ARM_PSCI)
-			if (psci_ops.cpu_suspend) {
-				pps.id = TEGRA_ID_CPU_SUSPEND_LP1;
-				pps.type = PSCI_POWER_STATE_TYPE_POWER_DOWN;
+		if (psci_ops.cpu_suspend) {
+			pps.id = TEGRA_ID_CPU_SUSPEND_LP0;
+			pps.type = PSCI_POWER_STATE_TYPE_POWER_DOWN;
+			pps.affinity_level = TEGRA_PWR_DN_AFFINITY_CLUSTER;
 
-				psci_ops.cpu_suspend(pps,
-					(TEGRA_RESET_HANDLER_BASE +
-					 tegra_cpu_reset_handler_offset));
-			}
-#endif
+			psci_ops.cpu_suspend(pps, virt_to_phys(tegra_resume));
 		}
+#endif
+	} else {
+		trace_smc_sleep_core(NVSEC_SMC_START);
 
-		trace_smc_sleep_core(NVSEC_SMC_DONE);
+#if defined(CONFIG_ARM_PSCI)
+		if (psci_ops.cpu_suspend) {
+			pps.id = TEGRA_ID_CPU_SUSPEND_LP1;
+			pps.type = PSCI_POWER_STATE_TYPE_POWER_DOWN;
+
+			psci_ops.cpu_suspend(pps, (TEGRA_RESET_HANDLER_BASE +
+				tegra_cpu_reset_handler_offset));
+		}
+#endif
 	}
 
+	trace_smc_sleep_core(NVSEC_SMC_DONE);
+#endif
 	tegra_get_suspend_time();
 #ifdef CONFIG_ARCH_TEGRA_2x_SOC
 	cpu_suspend(v2p, tegra2_sleep_core_finish);
@@ -750,10 +746,9 @@ static int tegra_sleep_cpu_prefinish(unsigned long v2p)
 	if (psci_ops.cpu_suspend) {
 		psci_ret = psci_ops.cpu_suspend(pps, TEGRA_RESET_HANDLER_BASE);
 		while (psci_ret == -EPERM)
-			psci_ret = tegra_restart_prev_smc();
-	} else
+			psci_ret = tegra_generic_smc(60 << 24, 0, 0);
+	}
 #endif
-		tegra_flush_cache();
 
 	tegra_sleep_cpu_finish(v2p);
 	return 0;
@@ -766,33 +761,25 @@ static inline void tegra_sleep_cpu(unsigned long v2p)
 
 static inline void tegra_stop_mc_clk(unsigned long v2p)
 {
+#ifdef CONFIG_TEGRA_USE_SECURE_KERNEL
 #if defined(CONFIG_ARM_PSCI)
-	int psci_ret = -EPERM;
-	unsigned long entry = TEGRA_RESET_HANDLER_BASE +
-		tegra_cpu_reset_handler_offset;
 	struct psci_power_state pps = {
 		TEGRA_ID_CPU_SUSPEND_LP1_STOP_MCCLK,
 		PSCI_POWER_STATE_TYPE_POWER_DOWN
 	};
 #endif
-
-	if (tegra_cpu_is_secure()) {
-		outer_flush_range(__pa(&tegra_resume_timestamps_start),
-				  __pa(&tegra_resume_timestamps_end));
+	outer_flush_range(__pa(&tegra_resume_timestamps_start),
+			  __pa(&tegra_resume_timestamps_end));
+	trace_smc_sleep_core(NVSEC_SMC_START);
 
 #if defined(CONFIG_ARM_PSCI)
-		trace_smc_sleep_core(NVSEC_SMC_START);
-
-		if (psci_ops.cpu_suspend) {
-			psci_ret = psci_ops.cpu_suspend(pps, entry);
-			while (psci_ret == -EPERM)
-				psci_ret = tegra_restart_prev_smc();
-		}
-
-		trace_smc_sleep_core(NVSEC_SMC_DONE);
-#endif
+	if (psci_ops.cpu_suspend) {
+		psci_ops.cpu_suspend(pps, (TEGRA_RESET_HANDLER_BASE +
+			tegra_cpu_reset_handler_offset));
 	}
-
+#endif
+	trace_smc_sleep_core(NVSEC_SMC_DONE);
+#endif
 	cpu_suspend(v2p, tegra3_stop_mc_clk_finish);
 }
 
@@ -878,18 +865,14 @@ unsigned int tegra_idle_power_down_last(unsigned int sleep_time,
 	suspend_cpu_complex(flags);
 	tegra_cluster_switch_time(flags, tegra_cluster_switch_time_id_prolog);
 #if defined(CONFIG_CACHE_L2X0)
-	if (tegra_cpu_is_secure()) {
-		flush_cache_all();
-		outer_disable();
-	}
-#if !defined(CONFIG_ARCH_TEGRA_14x_SOC)
-	if (!tegra_cpu_is_secure()) {
-		tegra_resume_l2_init = 1;
-		__cpuc_flush_dcache_area(&tegra_resume_l2_init,
-			sizeof(unsigned long));
-		outer_flush_range(__pa(&tegra_resume_l2_init),
+#if defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
+	flush_cache_all();
+	outer_disable();
+#elif !defined(CONFIG_ARCH_TEGRA_14x_SOC)
+	tegra_resume_l2_init = 1;
+	__cpuc_flush_dcache_area(&tegra_resume_l2_init, sizeof(unsigned long));
+	outer_flush_range(__pa(&tegra_resume_l2_init),
 			  __pa(&tegra_resume_l2_init) + sizeof(unsigned long));
-	}
 #endif
 #endif
 
@@ -937,9 +920,8 @@ unsigned int tegra_idle_power_down_last(unsigned int sleep_time,
 
 #if defined(CONFIG_ARCH_TEGRA_14x_SOC)
 	tegra_init_cache(true);
-#else
-	if (tegra_cpu_is_secure())
-		tegra_init_cache(false);
+#elif defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
+	tegra_init_cache(false);
 #endif
 
 #if defined(CONFIG_TRUSTED_FOUNDATIONS)
@@ -1450,17 +1432,17 @@ int tegra_suspend_dram(enum tegra_suspend_mode mode, unsigned int flags)
 	}
 #endif
 
-	if (tegra_cpu_is_secure()) {
+#if defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
 #ifndef CONFIG_ARCH_TEGRA_11x_SOC
-		trace_smc_wake(tegra_resume_smc_entry_time, NVSEC_SMC_START);
-		trace_smc_wake(tegra_resume_smc_exit_time, NVSEC_SMC_DONE);
+	trace_smc_wake(tegra_resume_smc_entry_time, NVSEC_SMC_START);
+	trace_smc_wake(tegra_resume_smc_exit_time, NVSEC_SMC_DONE);
 #endif
 
-		if (mode == TEGRA_SUSPEND_LP0) {
-			trace_secureos_init(tegra_resume_entry_time,
-				NVSEC_SUSPEND_EXIT_DONE);
-		}
+	if (mode == TEGRA_SUSPEND_LP0) {
+		trace_secureos_init(tegra_resume_entry_time,
+			NVSEC_SUSPEND_EXIT_DONE);
 	}
+#endif
 
 	if (mode == TEGRA_SUSPEND_LP0) {
 
@@ -2259,11 +2241,4 @@ static int __init tegra_pm_core_debug_init(void)
 }
 
 late_initcall(tegra_pm_core_debug_init);
-#endif
-
-#ifdef CONFIG_DEBUG_RODATA
-void set_platform_text_rw(void)
-{
-	set_memory_rw((unsigned long)tegra_restart_prev_smc, 1);
-}
 #endif

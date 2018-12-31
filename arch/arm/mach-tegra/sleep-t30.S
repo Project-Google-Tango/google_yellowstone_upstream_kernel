@@ -459,11 +459,7 @@ enable_mc:
 
 resume_lp1:
 	mov32	r0, TEGRA_CLK_RESET_BASE
-
-	ldr	r7, [r12, #RESET_DATA(SECURE_FW_PRESENT)]
-	cmp	r7, #1
-	beq	1f
-
+#if !defined(CONFIG_TEGRA_USE_SECURE_KERNEL)
 	/* secure code handles 32KHz to CLKM/OSC clock switch */
 	mov	r1, #(1<<28)
 	str	r1, [r0, #CLK_RESET_SCLK_BURST]
@@ -471,8 +467,8 @@ resume_lp1:
 	mov	r1, #0
 	str	r1, [r0, #CLK_RESET_SCLK_DIVIDER]
 	str	r1, [r0, #CLK_RESET_CCLK_DIVIDER]
+#endif
 
-1:
 #if defined(CONFIG_ARCH_TEGRA_3x_SOC)
 	/* enable PLLM via PMC */
 	mov32	r2, TEGRA_PMC_BASE

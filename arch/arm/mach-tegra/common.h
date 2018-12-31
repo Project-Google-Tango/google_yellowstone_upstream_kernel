@@ -1,6 +1,4 @@
 /*
- * Copyright (C) 2011-2014, NVIDIA Corporation. All rights reserved.
- *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms and conditions of the GNU General Public License,
  * version 2, as published by the Free Software Foundation.
@@ -22,7 +20,7 @@ extern struct smp_operations tegra_smp_ops;
 extern phys_addr_t tegra_tsec_start;
 extern phys_addr_t tegra_tsec_size;
 
-#ifdef CONFIG_TRUSTED_LITTLE_KERNEL
+#ifdef CONFIG_TEGRA_USE_SECURE_KERNEL
 extern unsigned long tegra_tzram_start;
 extern unsigned long tegra_tzram_size;
 #endif
@@ -41,7 +39,6 @@ void ahb_gizmo_writel(unsigned long val, void __iomem *reg);
 
 extern struct device tegra_generic_cma_dev;
 extern struct device tegra_vpr_cma_dev;
-extern int tegra_with_secure_firmware;
 
 extern struct device tegra_generic_dev;
 extern struct device tegra_vpr_dev;
@@ -53,8 +50,4 @@ u32 tegra_get_chip_id(void);
 u32 tegra_get_bct_strapping(void);
 void __init display_tegra_dt_info(void);
 
-static inline int tegra_cpu_is_secure(void)
-{
-	return tegra_with_secure_firmware;
-}
 #endif
