@@ -862,14 +862,6 @@ static void __init yellowstone_sysedp_dynamic_capping_init(void)
 	shield_sysedp_dynamic_capping_init();
 }
 
-static void __init yellowstone_sysedp_batmon_init(void)
-{
-	if (!IS_ENABLED(CONFIG_SYSEDP_FRAMEWORK))
-		return;
-
-	shield_sysedp_batmon_init();
-}
-
 static void __init edp_init(void)
 {
 	yellowstone_edp_init();
@@ -1001,7 +993,6 @@ static void __init tegra_yellowstone_late_init(void)
 
 	yellowstone_setup_bluedroid_pm();
 	yellowstone_sysedp_dynamic_capping_init();
-	yellowstone_sysedp_batmon_init();
 	tegra_vibrator_init();
 }
 
