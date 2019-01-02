@@ -43,8 +43,6 @@
 #include <linux/debugfs.h>
 #include <linux/clk.h>
 
-#include "t124/t124.h"
-#include <isp.h>
 #include <media/camera.h>
 
 static struct camera_platform_data camera_dflt_pdata = {
@@ -833,9 +831,6 @@ static int camera_remove(struct platform_device *dev)
 
 	kfree(cam_desc.layout);
 
-#ifdef TEGRA_12X_OR_HIGHER_CONFIG
-	tegra_isp_unregister_mfi_cb();
-#endif
 	camera_debugfs_remove();
 	return 0;
 }
@@ -871,10 +866,6 @@ static int camera_probe(struct platform_device *dev)
 		return -ENODEV;
 	}
 
-#ifdef TEGRA_12X_OR_HIGHER_CONFIG
-	camera_dev_sync_init();
-	tegra_isp_register_mfi_cb(camera_dev_sync_cb, NULL);
-#endif
 	camera_debugfs_init(&cam_desc);
 	return 0;
 }
