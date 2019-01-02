@@ -8,7 +8,7 @@
 #include "tegra124-platforms/tegra124-yellowstone-fixed.dtsi"
 
 / {
-	model = "NVIDIA Tegra124 Ardbeg";
+	model = "NVIDIA Tegra124 Yellowstone";
 	compatible = "google,yellowstone", "nvidia,tegra124";
 	nvidia,dtsfilename = __FILE__;
 	#address-cells = <2>;
