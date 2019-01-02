@@ -50,4 +50,7 @@ u32 tegra_get_chip_id(void);
 u32 tegra_get_bct_strapping(void);
 void __init display_tegra_dt_info(void);
 
+extern int get_cci_hw_id(void);
+extern int cci_hw_id;
+extern int ccibootmode;
 #endif

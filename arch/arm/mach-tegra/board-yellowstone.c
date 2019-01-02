@@ -97,6 +97,9 @@
 #include <linux/proc_fs.h>
 #include <linux/seq_file.h>
 
+int cci_hw_id = 0;
+int ccibootmode = 0;
+
 static __initdata struct tegra_clk_init_table yellowstone_clk_init_table[] = {
 	/* name		parent		rate		enabled */
 	{ "pll_m",	NULL,		0,		false},

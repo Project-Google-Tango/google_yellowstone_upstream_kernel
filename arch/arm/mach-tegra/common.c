@@ -1433,6 +1433,24 @@ enum audio_codec_type get_audio_codec_type(void)
 }
 __setup("audio_codec=", tegra_audio_codec_type);
 
+static int __init cci_hw_id_from_cmdline(char *cci_hwid)
+{
+	sscanf(cci_hwid, "%d", &cci_hw_id);
+	printk("Read CCI_HWID =%d from_cmdline!!\n",cci_hw_id);
+
+	return 1;
+}
+__setup("androidboot.ccihwid=", cci_hw_id_from_cmdline);
+
+static int __init cci_boot_mode_from_cmdline(char *cci_boot_mode)
+{
+	sscanf(cci_boot_mode, "%d", &ccibootmode);
+	printk("Read cci_boot_mode =%d from_cmdline!!\n",ccibootmode);
+
+	return 1;
+}
+__setup("androidboot.ccimode=", cci_boot_mode_from_cmdline);
+
 static int tegra_get_pwr_i2c_clk_rate(char *options)
 {
 	int clk = simple_strtol(options, NULL, 16);
