@@ -1154,7 +1154,7 @@ static int __init tegra_vpr_arg(char *options)
 	tegra_vpr_size = memparse(p, &p);
 	if (*p == '@')
 		tegra_vpr_start = memparse(p+1, &p);
-	pr_info("Found vpr, start=0x%llx size=%llx",
+	pr_info("Found vpr, start=0x%llx size=%llx\n",
 		(u64)tegra_vpr_start, (u64)tegra_vpr_size);
 	return 0;
 }
@@ -1168,7 +1168,7 @@ static int __init tegra_tsec_arg(char *options)
 	tegra_tsec_size = memparse(p, &p);
 	if (*p == '@')
 		tegra_tsec_start = memparse(p+1, &p);
-	pr_info("Found tsec, start=0x%llx size=%llx",
+	pr_info("Found tsec, start=0x%llx size=%llx\n",
 		(u64)tegra_tsec_start, (u64)tegra_tsec_size);
 	return 0;
 }
