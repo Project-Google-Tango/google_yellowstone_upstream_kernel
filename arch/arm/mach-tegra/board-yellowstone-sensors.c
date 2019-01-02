@@ -254,13 +254,13 @@ static struct i2c_board_info yellowstone_i2c_board_info_ov9762 = {
 
 static struct camera_module yellowstone_camera_module_info[] = {
 	{
-		.sensor.bi = &yellowstone_i2c_board_info_ov4682,
+		.sensor = &yellowstone_i2c_board_info_ov4682,
 	},
 	{
-		.sensor.bi = &yellowstone_i2c_board_info_ov7251,
+		.sensor = &yellowstone_i2c_board_info_ov7251,
 	},
 	{
-		.sensor.bi = &yellowstone_i2c_board_info_ov9762,
+		.sensor = &yellowstone_i2c_board_info_ov9762,
 	},
 	{}
 };
