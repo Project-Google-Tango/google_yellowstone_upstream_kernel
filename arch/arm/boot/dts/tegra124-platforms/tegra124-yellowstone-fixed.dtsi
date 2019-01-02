@@ -10,7 +10,7 @@
 		battery_ardbeg: regulator@0 {
 			compatible = "regulator-fixed";
 			reg = <0>;
-			regulator-name = "vdd_ac_bat";
+			regulator-name = "vdd-ac-bat";
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
 			enable-active-high;			
