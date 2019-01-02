@@ -310,10 +310,6 @@ static int yellowstone_camera_init(void)
 		&yellowstone_pcl_pdata, sizeof(yellowstone_pcl_pdata));
 	platform_device_register(&yellowstone_camera_generic);
 
-#if IS_ENABLED(CONFIG_SOC_CAMERA_PLATFORM)
-	platform_device_register(&yellowstone_soc_camera_device);
-#endif
-
 	return 0;
 }
 
