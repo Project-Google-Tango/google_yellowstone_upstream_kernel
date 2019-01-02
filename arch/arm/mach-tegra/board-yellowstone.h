@@ -31,10 +31,10 @@ int yellowstone_sdhci_init(void);
 int yellowstone_sensors_init(void);
 int yellowstone_regulator_init(void);
 int yellowstone_suspend_init(void);
-int yellowstone_pmon_init(void);
 int yellowstone_rail_alignment_init(void);
 int yellowstone_soctherm_init(void);
 int yellowstone_edp_init(void);
+
 void shield_new_sysedp_init(void);
 void shield_sysedp_dynamic_capping_init(void);
 void shield_sysedp_batmon_init(void);
@@ -168,9 +168,7 @@ GPIO, also the GPIO is same for T114 interposer and T124*/
 #define I2C_TP_IRQ	TEGRA_GPIO_PW3
 
 /* YellowStone specific */
-int yellowstone_regulator_init(void);
 int yellowstone_fixed_regulator_init(void);
-int yellowstone_edp_init(void);
 void yellowstone_new_sysedp_init(void);
 
 /* SATA Specific */

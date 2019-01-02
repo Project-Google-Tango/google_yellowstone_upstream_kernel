@@ -1014,7 +1014,6 @@ static void __init tegra_yellowstone_dt_init(void)
 #endif
 
 #ifdef CONFIG_USE_OF
-	/* yellowstone_camera_auxdata(yellowstone_auxdata_lookup); */
 	of_platform_populate(NULL,
 		of_default_bus_match_table, yellowstone_auxdata_lookup,
 		&platform_bus);
