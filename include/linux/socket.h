@@ -181,7 +181,7 @@ struct ucred {
 #define AF_VSOCK	40	/* vSockets			*/
 #define AF_MHI		41      /* MHI sockets */
 #define AF_RAW		42      /* RAW sockets */
-#define AF_MAX		41	/* For now.. */
+#define AF_MAX		43	/* For now.. */
 
 /* Protocol families, same as address families. */
 #define PF_UNSPEC	AF_UNSPEC
