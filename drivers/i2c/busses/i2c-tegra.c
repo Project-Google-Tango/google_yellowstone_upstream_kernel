@@ -1798,7 +1798,7 @@ static void tegra_i2c_shutdown(struct platform_device *pdev)
 {
 	struct tegra_i2c_dev *i2c_dev = platform_get_drvdata(pdev);
 
-	dev_info(i2c_dev->dev, "Bus is shutdown down..\n");
+	dev_info(i2c_dev->dev, "Shutting down\n");
 	i2c_shutdown_adapter(&i2c_dev->adapter);
 	i2c_dev->is_shutdown = true;
 }
